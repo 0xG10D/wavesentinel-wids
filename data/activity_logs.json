@@ -1,0 +1,47 @@
+[
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "INFO",
+    "message": "Monitoring session started in demo mode on interface 'default'."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "MEDIUM",
+    "message": "Unknown Device Access: Observed source MAC 66:77:88:99:AA:BB is not present in data/known_devices.csv."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "MEDIUM",
+    "message": "Unknown Device Access: Observed source MAC DE:AD:BE:EF:00:01 is not present in data/known_devices.csv."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "HIGH",
+    "message": "ARP Spoofing Suspicion: IP 192.168.1.1 was previously mapped to AA:BB:CC:DD:EE:01 and is now claiming DE:AD:BE:EF:00:01. Review for ARP poisoning."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "MEDIUM",
+    "message": "Abnormal Packet Rate: Source 192.168.1.250 generated 25 packets within 10 seconds."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "MEDIUM",
+    "message": "Unknown Device Access: Observed source MAC CA:FE:00:00:00:99 is not present in data/known_devices.csv."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "HIGH",
+    "message": "Deauthentication-Like Activity: Detected 3 wireless management events from CA:FE:00:00:00:99 inside 30 seconds."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "INFO",
+    "message": "Cycle 1 complete: processed 39 packets and raised 6 alerts in demo mode."
+  },
+  {
+    "timestamp": "2026-05-13T10:00:44+08:00",
+    "level": "INFO",
+    "message": "Monitoring session completed."
+  }
+]

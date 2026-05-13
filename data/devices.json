@@ -1,0 +1,68 @@
+[
+  {
+    "device_name": "Lab Router",
+    "mac_address": "AA:BB:CC:DD:EE:01",
+    "ip_address": "192.168.1.1",
+    "owner": "Lab Admin",
+    "trusted": true,
+    "first_seen": "2026-05-13T10:00:47+08:00",
+    "last_seen": "2026-05-13T10:00:47+08:00",
+    "packet_count": 1,
+    "last_protocol": "ARP"
+  },
+  {
+    "device_name": "Lecturer Phone",
+    "mac_address": "AA:BB:CC:DD:EE:20",
+    "ip_address": "192.168.1.20",
+    "owner": "Lecturer",
+    "trusted": true,
+    "first_seen": "2026-05-13T10:00:45+08:00",
+    "last_seen": "2026-05-13T10:00:45+08:00",
+    "packet_count": 1,
+    "last_protocol": "UDP"
+  },
+  {
+    "device_name": "Student Laptop",
+    "mac_address": "AA:BB:CC:DD:EE:10",
+    "ip_address": "192.168.1.10",
+    "owner": "Student A",
+    "trusted": true,
+    "first_seen": "2026-05-13T10:00:44+08:00",
+    "last_seen": "2026-05-13T10:00:44+08:00",
+    "packet_count": 1,
+    "last_protocol": "TCP"
+  },
+  {
+    "device_name": "Unknown Device",
+    "mac_address": "66:77:88:99:AA:BB",
+    "ip_address": "192.168.1.250",
+    "owner": "",
+    "trusted": false,
+    "first_seen": "2026-05-13T10:00:46+08:00",
+    "last_seen": "2026-05-13T10:00:53+08:00",
+    "packet_count": 31,
+    "last_protocol": "UDP"
+  },
+  {
+    "device_name": "Unknown Device",
+    "mac_address": "CA:FE:00:00:00:99",
+    "ip_address": "",
+    "owner": "",
+    "trusted": false,
+    "first_seen": "2026-05-13T10:00:52+08:00",
+    "last_seen": "2026-05-13T10:00:55+08:00",
+    "packet_count": 4,
+    "last_protocol": "802.11"
+  },
+  {
+    "device_name": "Unknown Device",
+    "mac_address": "DE:AD:BE:EF:00:01",
+    "ip_address": "192.168.1.1",
+    "owner": "",
+    "trusted": false,
+    "first_seen": "2026-05-13T10:00:48+08:00",
+    "last_seen": "2026-05-13T10:00:48+08:00",
+    "packet_count": 1,
+    "last_protocol": "ARP"
+  }
+]

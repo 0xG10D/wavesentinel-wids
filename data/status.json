@@ -1,0 +1,11 @@
+{
+  "running": false,
+  "mode": "demo",
+  "interface": "default",
+  "last_update": "2026-05-13T10:00:44+08:00",
+  "packet_count": 39,
+  "alert_count": 6,
+  "device_count": 6,
+  "message": "Monitoring session completed.",
+  "error": ""
+}
