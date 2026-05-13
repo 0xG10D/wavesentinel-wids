@@ -22,8 +22,8 @@
                 <span id="status-pill" class="pill">Idle</span>
                 <p id="status-message" class="status-message"></p>
                 <p class="status-meta">
-                    Last update:
-                    <span id="last-update">-</span>
+                    Last Updated:
+                    <span id="last-updated">-</span>
                 </p>
             </div>
         </header>
@@ -174,6 +174,7 @@
 
     <script>
         const initialPayload = {{ payload | tojson }};
+        const dashboardFailureMessage = "Dashboard update failed";
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -310,6 +311,9 @@
             const status = payload.status || {};
             const stats = payload.stats || {};
             const devices = payload.devices || [];
+            const alerts = payload.alerts || [];
+            const trafficLogs = payload.traffic_logs || [];
+            const activityLogs = payload.activity_logs || [];
 
             const running = Boolean(status.running);
             const pill = document.getElementById("status-pill");
@@ -319,7 +323,7 @@
             }
 
             setText("status-message", status.message || "No status message available.");
-            setText("last-update", status.last_update || "-");
+            setText("last-updated", payload.last_updated || "-");
             setText("metric-mode", (status.mode || "unknown").toUpperCase());
             setText("metric-packets", status.packet_count || stats.total_packets || 0);
             setText("metric-alerts", status.alert_count || stats.total_alerts || 0);
@@ -339,27 +343,39 @@
             renderTagList("protocol-list", stats.protocol_breakdown);
             renderTagList("source-list", stats.top_sources);
             renderTagList("alert-type-list", stats.alert_type_breakdown);
-            renderDevices(payload.devices || []);
-            renderAlerts(payload.alerts || []);
-            renderTraffic(payload.traffic || []);
-            renderActivity(payload.activity || []);
+            renderDevices(devices);
+            renderAlerts(alerts);
+            renderTraffic(trafficLogs);
+            renderActivity(activityLogs);
+        }
+
+        function showDashboardFailure(message = dashboardFailureMessage) {
+            const errorBox = document.getElementById("error-box");
+            if (!errorBox) {
+                return;
+            }
+
+            errorBox.hidden = false;
+            errorBox.textContent = message;
         }
 
         async function refreshDashboard() {
             try {
                 const response = await fetch("/api/dashboard-data", { cache: "no-store" });
                 if (!response.ok) {
+                    showDashboardFailure();
                     return;
                 }
                 const payload = await response.json();
                 updateDashboard(payload);
             } catch (error) {
+                showDashboardFailure();
                 console.error("Dashboard refresh failed:", error);
             }
         }
 
         updateDashboard(initialPayload);
-        window.setInterval(refreshDashboard, 5000);
+        window.setInterval(refreshDashboard, 10000);
     </script>
 </body>
 </html>
