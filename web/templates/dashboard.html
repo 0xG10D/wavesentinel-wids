@@ -171,9 +171,11 @@
             </article>
         </section>
     </div>
-
+    <script id="initial-payload" type="application/json">
+        {{ payload | tojson | safe }}
+    </script>
     <script>
-        const initialPayload = {{ payload | tojson }};
+        const initialPayload = JSON.parse(document.getElementById('initial-payload').textContent);
         const dashboardFailureMessage = "Dashboard update failed";
 
         function escapeHtml(value) {

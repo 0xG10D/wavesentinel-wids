@@ -9,3 +9,10 @@ __pycache__/
 .CBS 2343 WIRELESS NETWORK & SECURITY MINI PROJECT 30_.docxCBS 2343 WIRELESS NETWORK & SECURITY MINI PROJECT 30_.docx
 /CBS 2343 WIRELESS NETWORK & SECURITY MINI PROJECT 30_.docx
 *.docx
+
+# Runtime data/logs
+data/*.json
+data/*.csv
+
+# VS Code local settings
+.vscode/settings.json
