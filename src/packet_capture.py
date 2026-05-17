@@ -92,7 +92,11 @@ class PacketCapture:
             raise PacketCaptureError(f"PCAP file not found: {pcap_file}")
 
         try:
-            packets = rdpcap(str(pcap_file))
+            from scapy.all import PcapReader
+            packets = []
+            with PcapReader(str(pcap_file)) as pcap_reader:
+                for packet in pcap_reader:
+                    packets.append(packet)
         except FileNotFoundError as exc:
             raise PacketCaptureError(f"PCAP file not found: {pcap_file}") from exc
         except Scapy_Exception as exc:

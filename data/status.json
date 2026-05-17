@@ -1,10 +1,12 @@
 {
-  "running": false,
-  "mode": "demo",
+  "monitoring": false,
   "interface": "default",
-  "last_update": "2026-05-13T10:00:44+08:00",
   "packet_count": 39,
   "alert_count": 6,
+  "last_updated": "Not started",
+  "running": false,
+  "mode": "demo",
+  "last_update": "2026-05-17T13:43:22+08:00",
   "device_count": 6,
   "message": "Monitoring session completed.",
   "error": ""

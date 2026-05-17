@@ -107,7 +107,7 @@ class MonitorLogger:
 
     @staticmethod
     def _ensure_csv(path: Path, headers: list[str]) -> None:
-        if path.exists():
+        if path.exists() and path.stat().st_size > 0:
             return
         with path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=headers)
@@ -125,9 +125,12 @@ class MonitorLogger:
         headers: list[str],
         row: dict[str, Any],
     ) -> None:
+        write_header = not path.exists() or path.stat().st_size == 0
         cleaned = {header: row.get(header, "") for header in headers}
         with path.open("a", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=headers)
+            if write_header:
+                writer.writeheader()
             writer.writerow(cleaned)
 
     def _ensure_json(self, path: Path, default_payload: Any) -> None:

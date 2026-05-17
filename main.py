@@ -172,6 +172,7 @@ def run_monitor(args: argparse.Namespace) -> int:
                 PacketCaptureError,
             ) as exc:
                 active_mode = "demo"
+                requested_mode = "demo"
                 cycle_message = f"{exc} Falling back to demo mode."
                 last_error = cycle_message
                 logger.append_activity(cycle_message, level="ERROR")

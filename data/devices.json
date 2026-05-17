@@ -5,8 +5,8 @@
     "ip_address": "192.168.1.1",
     "owner": "Lab Admin",
     "trusted": true,
-    "first_seen": "2026-05-13T10:00:47+08:00",
-    "last_seen": "2026-05-13T10:00:47+08:00",
+    "first_seen": "2026-05-17T13:43:25+08:00",
+    "last_seen": "2026-05-17T13:43:25+08:00",
     "packet_count": 1,
     "last_protocol": "ARP"
   },
@@ -16,8 +16,8 @@
     "ip_address": "192.168.1.20",
     "owner": "Lecturer",
     "trusted": true,
-    "first_seen": "2026-05-13T10:00:45+08:00",
-    "last_seen": "2026-05-13T10:00:45+08:00",
+    "first_seen": "2026-05-17T13:43:23+08:00",
+    "last_seen": "2026-05-17T13:43:23+08:00",
     "packet_count": 1,
     "last_protocol": "UDP"
   },
@@ -27,8 +27,8 @@
     "ip_address": "192.168.1.10",
     "owner": "Student A",
     "trusted": true,
-    "first_seen": "2026-05-13T10:00:44+08:00",
-    "last_seen": "2026-05-13T10:00:44+08:00",
+    "first_seen": "2026-05-17T13:43:22+08:00",
+    "last_seen": "2026-05-17T13:43:22+08:00",
     "packet_count": 1,
     "last_protocol": "TCP"
   },
@@ -38,8 +38,8 @@
     "ip_address": "192.168.1.250",
     "owner": "",
     "trusted": false,
-    "first_seen": "2026-05-13T10:00:46+08:00",
-    "last_seen": "2026-05-13T10:00:53+08:00",
+    "first_seen": "2026-05-17T13:43:24+08:00",
+    "last_seen": "2026-05-17T13:43:32+08:00",
     "packet_count": 31,
     "last_protocol": "UDP"
   },
@@ -49,8 +49,8 @@
     "ip_address": "",
     "owner": "",
     "trusted": false,
-    "first_seen": "2026-05-13T10:00:52+08:00",
-    "last_seen": "2026-05-13T10:00:55+08:00",
+    "first_seen": "2026-05-17T13:43:30+08:00",
+    "last_seen": "2026-05-17T13:43:33+08:00",
     "packet_count": 4,
     "last_protocol": "802.11"
   },
@@ -60,8 +60,8 @@
     "ip_address": "192.168.1.1",
     "owner": "",
     "trusted": false,
-    "first_seen": "2026-05-13T10:00:48+08:00",
-    "last_seen": "2026-05-13T10:00:48+08:00",
+    "first_seen": "2026-05-17T13:43:26+08:00",
+    "last_seen": "2026-05-17T13:43:26+08:00",
     "packet_count": 1,
     "last_protocol": "ARP"
   }

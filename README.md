@@ -1,218 +1,73 @@
-# Wireless Network Security Monitor
+# Wireless Intrusion Detection System (WIDS)
 
-Wireless Network Security Monitor is a defensive mini project for `CBS 2343 Wireless Network Security`. It captures or replays network traffic, extracts packet metadata, detects suspicious patterns, writes alerts to CSV, and visualizes the latest results on a localhost Flask dashboard.
+This project is a Wireless Intrusion Detection System (WIDS) designed for the TW18 Network Security Mini-Project. It uses Python and Scapy to monitor 802.11 network traffic, detecting malicious behavior such as Deauthentication Floods. Findings are presented on a modern Graphical User Interface built with CustomTkinter.
 
-This project is intentionally scoped for an authorized academic lab. It does **not** exploit targets, transmit attacks, or automate offensive actions.
+## Features
 
-## Core Capabilities
+- **Packet Sniffing**: Uses Scapy to dissect 802.11 wireless frames.
+- **Deauth Detection**: Tracks and detects anomalous spikes in Deauthentication frames (e.g., >50 frames to a target within 10 seconds).
+- **Hybrid Modes**:
+  - **Offline Mode**: Feed the tool an existing `.pcap` file captured via Wireshark.
+  - **Live Mode**: Directly sniff traffic from a wireless interface in Monitor mode.
+- **Modern GUI**: Real-time statistical dashboard and alert logging using CustomTkinter, executed in a thread-safe manner.
 
-- Live packet capture with `Scapy`
-- Offline replay from a `.pcap` file
-- Demo mode with seeded sample traffic for presentation use
-- Trusted device tracking from `data/known_devices.csv`
-- Detection for:
-  - Unknown device access
-  - ARP spoofing suspicion
-  - Deauthentication-like wireless events
-  - Packet flood or abnormal packet rate
-- CSV logging for alerts and traffic
-- Flask dashboard at `http://127.0.0.1:5000`
+## Installation & Setup
 
-## Project Structure
+1. **Clone the Repository or navigate to the project directory**:
+   ```bash
+   cd "wireless-security-monitor"
+   ```
 
-```text
-wireless-security-monitor/
-├── README.md
-├── requirements.txt
-├── main.py
-├── src/
-│   ├── __init__.py
-│   ├── packet_capture.py
-│   ├── device_scanner.py
-│   ├── attack_detector.py
-│   └── logger.py
-├── web/
-│   ├── app.py
-│   ├── templates/dashboard.html
-│   └── static/style.css
-├── data/
-│   ├── known_devices.csv
-│   ├── alerts.csv
-│   ├── traffic_logs.csv
-│   ├── status.json
-│   ├── devices.json
-│   └── activity_logs.json
-└── screenshots/
-```
+2. **Install Python Dependencies**:
+   It is highly recommended to run this inside a virtual environment.
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *Required packages: `scapy`, `customtkinter`, `Flask` (for legacy web dashboard support).*
 
-## Setup
+3. **Npcap / libpcap Requirement**:
+   - **Windows**: You must have [Npcap](https://npcap.com/) installed (ensure you check "Install Npcap in WinPcap API-compatible Mode" during installation) so that Scapy can read PCAP files and interface with network cards.
+   - **Linux**: Ensure `tcpdump` and `libpcap` are installed (`sudo apt install tcpdump`).
 
+## How to Run Offline Mode (Testing & Analysis)
+
+1. Launch the Desktop Dashboard:
+   ```bash
+   python wids_gui.py
+   ```
+2. Select **Offline Mode** in the left sidebar.
+3. In the Interface/PCAP Path box, type the path to your PCAP file (e.g., `test_capture.pcap`).
+4. Click **Start Monitoring**. 
+5. The application will process the packets rapidly, updating the stats and alerting you to any detected attacks.
+
+## How to Run Live Mode (Real-Time Sniffing)
+
+Live Mode requires your wireless network adapter to be capable of and set into **Monitor Mode**. This is typically done on a Linux system (like Kali Linux) using the Aircrack-ng suite.
+
+### 1. Enable Monitor Mode (Linux/Kali)
+Open your terminal and find your wireless interface name (e.g., `wlan0`):
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-## Run Commands
-
-Run one monitoring cycle:
-
-```bash
-sudo python3 main.py
-```
-
-Run against a specific interface:
-
-```bash
-sudo python3 main.py --interface wlan0
-```
-
-Run continuously until you stop it:
-
-```bash
-sudo python3 main.py --interface wlan0 --iterations 0
-```
-
-Run in demo mode:
-
-```bash
-python3 main.py --mode demo --reset-logs
-```
-
-Replay a packet capture file:
-
-```bash
-python3 main.py --mode pcap --pcap /path/to/lab_capture.pcap --reset-logs
-```
-
-Start the dashboard:
-
-```bash
-python3 web/app.py
-```
-
-Open:
-
-```text
-http://127.0.0.1:5000
-```
-
-## How It Works
-
-1. `main.py` selects a traffic source: live capture, PCAP replay, or demo mode.
-2. `src/packet_capture.py` extracts packet metadata such as MAC, IP, protocol, packet size, and wireless subtype.
-3. `src/device_scanner.py` compares observed devices against the trusted list in `data/known_devices.csv`.
-4. `src/attack_detector.py` raises alerts when suspicious patterns appear.
-5. `src/logger.py` writes:
-   - `data/alerts.csv`
-   - `data/traffic_logs.csv`
-   - `data/status.json`
-   - `data/devices.json`
-   - `data/activity_logs.json`
-6. `web/app.py` reads those files and renders the dashboard.
-
-## Detection Logic
-
-### 1. Unknown Device Access
-
-If a source MAC address is not present in `data/known_devices.csv`, the monitor creates an alert.
-
-Example:
-
-```text
-Observed source MAC 66:77:88:99:AA:BB is not on the trusted device list.
-```
-
-### 2. ARP Spoofing Suspicion
-
-If the same IP address appears with different MAC addresses across ARP traffic, the monitor flags possible spoofing.
-
-Example:
-
-```text
-192.168.1.1 was first seen with AA:BB:CC:DD:EE:01, then appeared with DE:AD:BE:EF:00:01.
-```
-
-### 3. Deauthentication-Like Events
-
-If 802.11 management frames with `Deauthentication` or `Disassociation` subtypes are detected repeatedly, the monitor logs a high-severity wireless alert.
-
-### 4. Packet Flood / Abnormal Rate
-
-If a single source sends too many packets inside a short time window, the monitor raises a flood alert.
-
-## Demo Mode
-
-Demo mode is the operational fallback for presentations or restricted lab systems. It injects safe sample records that simulate:
-
-- trusted traffic
-- an unknown device
-- ARP inconsistency
-- flood-like traffic
-- deauthentication-like frames
-
-This keeps the dashboard functional even when:
-
-- root privileges are unavailable
-- no wireless adapter is present
-- monitor mode is not configured
-- packet capture is blocked in a VM
-
-## Trusted Device File
-
-Edit `data/known_devices.csv` to match your lab devices.
-
-Example:
-
-```csv
-device_name,mac_address,ip_address,owner,notes
-Lab Router,AA:BB:CC:DD:EE:01,192.168.1.1,Lab Admin,Default gateway
-Student Laptop,AA:BB:CC:DD:EE:10,192.168.1.10,Student A,Authorized laptop
-```
-
-## Troubleshooting
-
-### Permission Error
-
-If live capture fails with a permission error, run:
-
-```bash
-sudo python3 main.py --interface wlan0
-```
-
-### Interface Not Found
-
-Check your available interfaces:
-
-```bash
-ip link
 iwconfig
 ```
-
-Then rerun with the correct interface:
-
+Put the interface into monitor mode:
 ```bash
-sudo python3 main.py --interface wlan0mon
+sudo airmon-ng check kill
+sudo airmon-ng start wlan0
+```
+This usually creates a new interface called `wlan0mon`. Verify with `iwconfig`.
+
+### 2. Run the Dashboard as Root/Admin
+Scapy requires elevated privileges to sniff live traffic from a network interface.
+```bash
+sudo python3 wids_gui.py
 ```
 
-### No Wireless Frames Appearing
+### 3. Start Live Monitoring
+1. In the GUI, select **Live Mode**.
+2. Set the Interface field to your monitor mode interface (e.g., `wlan0mon`).
+3. Click **Start Monitoring**. The system will now sniff raw 802.11 frames from the air.
 
-That is normal on a standard managed interface. Deauthentication-like detection needs wireless management frames, usually from a monitor-mode interface or a PCAP file that already contains `Dot11` traffic.
+## System Architecture
 
-### Dashboard Shows Old Data
-
-Start a fresh run:
-
-```bash
-python3 main.py --mode demo --reset-logs
-```
-
-## Presentation Tips
-
-- Use `--mode demo --reset-logs` before your presentation so the dashboard is populated with clean sample data.
-- Keep the dashboard open on `http://127.0.0.1:5000`.
-- Explain that this is a monitoring and alerting control, not an attack platform.
-
-## Disclaimer
-
-Use this project only in an authorized lab or approved test environment. It is designed for defensive monitoring, logging, and education.
+- **`wids_sniffer.py`**: Contains the core `WIDSSniffer` class. It manages the background thread to prevent blocking the GUI. It uses `scapy.sniff()` and applies threshold-based detection logic specifically for Management frames (Type 0, Subtype 12).
+- **`wids_gui.py`**: Contains the `WIDSGui` class leveraging `customtkinter`. It establishes thread-safe communication using `after()` callbacks so the sniffer can asynchronously inject statistics and alerts onto the screen.
