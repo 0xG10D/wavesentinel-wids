@@ -3,126 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wireless Network Security Monitor</title>
+    <title>Wireless Security Monitor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="page-shell">
         <header class="hero">
-            <div>
-                <p class="eyebrow">CBS 2343 Wireless Network Security</p>
-                <h1>Wireless Network Security Monitor</h1>
-                <p class="hero-copy">
-                    Defensive monitoring dashboard for authorized wireless security labs.
-                    The platform captures traffic, tracks trusted devices, and highlights
-                    suspicious activity for rapid analyst review.
+            <div class="hero-copy">
+                <p class="eyebrow">Defensive Wireless IDS Dashboard</p>
+                <h1>Real-Time 802.11 Threat Monitoring</h1>
+                <p>
+                    Live WIDS view for authorized labs using monitor-mode capture, packet-backed alerts,
+                    and file-based telemetry from the unified detection engine.
                 </p>
             </div>
             <div class="hero-status">
-                <span id="status-pill" class="pill">Idle</span>
-                <p id="status-message" class="status-message"></p>
-                <p class="status-meta">
-                    Last Updated:
-                    <span id="last-updated">-</span>
-                </p>
+                <span id="status-pill" class="pill pill-idle">Idle</span>
+                <p id="status-message" class="status-message">Dashboard ready.</p>
+                <div class="status-meta-grid">
+                    <div>
+                        <span class="status-label">Interface</span>
+                        <strong id="hero-interface">-</strong>
+                    </div>
+                    <div>
+                        <span class="status-label">Channel</span>
+                        <strong id="hero-channel">-</strong>
+                    </div>
+                    <div>
+                        <span class="status-label">Last Updated</span>
+                        <strong id="last-updated">-</strong>
+                    </div>
+                </div>
             </div>
         </header>
 
+        <section class="filter-panel">
+            <div class="panel-header">
+                <h2>Alert Filters</h2>
+            </div>
+            <form id="filter-form" class="filter-grid">
+                <label>
+                    <span>Severity</span>
+                    <select id="filter-severity" name="severity"></select>
+                </label>
+                <label>
+                    <span>BSSID</span>
+                    <input id="filter-bssid" name="bssid" type="text" placeholder="FC:3F:FC:93:7F:B1">
+                </label>
+                <label>
+                    <span>ESSID</span>
+                    <input id="filter-essid" name="essid" type="text" placeholder="Target SSID">
+                </label>
+                <label>
+                    <span>Attack Type</span>
+                    <select id="filter-attack-type" name="attack_type"></select>
+                </label>
+                <div class="filter-actions">
+                    <button type="submit" class="action-button primary">Apply</button>
+                    <button type="button" id="reset-filters" class="action-button secondary">Reset</button>
+                </div>
+            </form>
+        </section>
+
         <section class="summary-grid">
             <article class="metric-card">
-                <span class="metric-label">Capture Mode</span>
-                <strong id="metric-mode" class="metric-value">-</strong>
-                <small class="metric-hint">Auto, live, PCAP, or demo replay</small>
-            </article>
-            <article class="metric-card">
-                <span class="metric-label">Packets Processed</span>
+                <span class="metric-label">Packets Seen</span>
                 <strong id="metric-packets" class="metric-value">0</strong>
-                <small class="metric-hint">Traffic records persisted in CSV</small>
+                <small>Captured from live monitor-mode traffic.</small>
             </article>
             <article class="metric-card">
-                <span class="metric-label">Detected Alerts</span>
+                <span class="metric-label">Alerts Raised</span>
                 <strong id="metric-alerts" class="metric-value">0</strong>
-                <small class="metric-hint">Suspicious events requiring review</small>
+                <small>All alerts are based on real captured frames.</small>
             </article>
             <article class="metric-card">
-                <span class="metric-label">Observed Devices</span>
-                <strong id="metric-devices" class="metric-value">0</strong>
-                <small class="metric-hint">Trusted and unknown endpoints</small>
+                <span class="metric-label">Detected APs</span>
+                <strong id="metric-aps" class="metric-value">0</strong>
+                <small>Observed from beacons and related management traffic.</small>
+            </article>
+            <article class="metric-card">
+                <span class="metric-label">Detected Clients</span>
+                <strong id="metric-clients" class="metric-value">0</strong>
+                <small>Observed from management and data frames.</small>
+            </article>
+            <article class="metric-card">
+                <span class="metric-label">High Severity Alerts</span>
+                <strong id="metric-high" class="metric-value">0</strong>
+                <small>Filtered HIGH and CRITICAL findings.</small>
+            </article>
+        </section>
+
+        <section class="counter-strip">
+            <article class="counter-card">
+                <span>Deauth Frames</span>
+                <strong id="counter-deauth">0</strong>
+            </article>
+            <article class="counter-card">
+                <span>Disassoc Frames</span>
+                <strong id="counter-disassoc">0</strong>
+            </article>
+            <article class="counter-card">
+                <span>Beacon Frames</span>
+                <strong id="counter-beacon">0</strong>
+            </article>
+            <article class="counter-card">
+                <span>Probe Requests</span>
+                <strong id="counter-probe">0</strong>
             </article>
         </section>
 
         <section class="panel-grid">
             <article class="panel">
                 <div class="panel-header">
-                    <h2>Monitoring Status</h2>
+                    <h2>Engine Status</h2>
                 </div>
                 <div class="status-grid">
                     <div>
-                        <span class="status-label">Engine State</span>
+                        <span class="status-label">State</span>
                         <strong id="engine-state">Stopped</strong>
                     </div>
                     <div>
-                        <span class="status-label">Interface</span>
-                        <strong id="engine-interface">-</strong>
+                        <span class="status-label">Current Channel</span>
+                        <strong id="engine-channel">-</strong>
                     </div>
                     <div>
-                        <span class="status-label">Trusted Devices Seen</span>
-                        <strong id="trusted-count">0</strong>
+                        <span class="status-label">Channel Lock</span>
+                        <strong id="engine-channel-lock">-</strong>
                     </div>
                     <div>
-                        <span class="status-label">Unknown Devices Seen</span>
-                        <strong id="unknown-count">0</strong>
+                        <span class="status-label">Target BSSID</span>
+                        <strong id="engine-target-bssid">-</strong>
+                    </div>
+                    <div>
+                        <span class="status-label">Target ESSID</span>
+                        <strong id="engine-target-essid">-</strong>
                     </div>
                 </div>
-                <div class="error-box" id="error-box" hidden></div>
+                <div id="error-box" class="error-box" hidden></div>
             </article>
 
             <article class="panel">
                 <div class="panel-header">
-                    <h2>Traffic Statistics</h2>
+                    <h2>Threat Overview</h2>
                 </div>
-                <div class="stats-columns">
+                <div class="tag-columns">
                     <div>
-                        <h3>Protocol Breakdown</h3>
-                        <ul id="protocol-list" class="tag-list"></ul>
+                        <h3>Severity Count</h3>
+                        <ul id="severity-list" class="tag-list"></ul>
                     </div>
                     <div>
-                        <h3>Top Sources</h3>
-                        <ul id="source-list" class="tag-list"></ul>
-                    </div>
-                    <div>
-                        <h3>Alert Categories</h3>
-                        <ul id="alert-type-list" class="tag-list"></ul>
+                        <h3>Attack Types</h3>
+                        <ul id="attack-type-list" class="tag-list"></ul>
                     </div>
                 </div>
             </article>
         </section>
 
+        <section class="panel-grid">
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Recent High Severity Alerts</h2>
+                </div>
+                <div id="high-alerts" class="stack-list"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>System Events</h2>
+                </div>
+                <div id="activity-list" class="stack-list"></div>
+            </article>
+        </section>
+
         <section class="panel">
             <div class="panel-header">
-                <h2>Connected Devices</h2>
+                <h2>Detected Access Points</h2>
             </div>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
-                            <th>Device</th>
-                            <th>MAC Address</th>
-                            <th>IP Address</th>
-                            <th>Owner</th>
-                            <th>Trust</th>
-                            <th>Packets</th>
+                            <th>BSSID</th>
+                            <th>ESSID</th>
+                            <th>Channel</th>
+                            <th>Security</th>
+                            <th>Beacons</th>
+                            <th>Clients</th>
                             <th>Last Seen</th>
                         </tr>
                     </thead>
-                    <tbody id="devices-body"></tbody>
+                    <tbody id="aps-body"></tbody>
                 </table>
             </div>
         </section>
 
         <section class="panel">
             <div class="panel-header">
-                <h2>Detected Alerts</h2>
+                <h2>Detected Clients</h2>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client MAC</th>
+                            <th>Associated BSSID</th>
+                            <th>ESSID</th>
+                            <th>Frames</th>
+                            <th>Probe ESSIDs</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clients-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Live Alert Feed</h2>
             </div>
             <div class="table-wrap">
                 <table>
@@ -130,10 +228,11 @@
                         <tr>
                             <th>Timestamp</th>
                             <th>Severity</th>
-                            <th>Alert Type</th>
-                            <th>Source</th>
-                            <th>Destination</th>
+                            <th>Attack Type</th>
+                            <th>BSSID</th>
+                            <th>ESSID</th>
                             <th>Details</th>
+                            <th>MITRE</th>
                         </tr>
                     </thead>
                     <tbody id="alerts-body"></tbody>
@@ -141,41 +240,34 @@
             </div>
         </section>
 
-        <section class="panel-grid">
-            <article class="panel">
-                <div class="panel-header">
-                    <h2>Recent Traffic Records</h2>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>Source</th>
-                                <th>Destination</th>
-                                <th>Protocol</th>
-                                <th>Length</th>
-                                <th>Mode</th>
-                            </tr>
-                        </thead>
-                        <tbody id="traffic-body"></tbody>
-                    </table>
-                </div>
-            </article>
-
-            <article class="panel">
-                <div class="panel-header">
-                    <h2>Activity Logs</h2>
-                </div>
-                <div id="activity-list" class="activity-list"></div>
-            </article>
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Recent Traffic Records</h2>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Subtype</th>
+                            <th>BSSID</th>
+                            <th>ESSID</th>
+                            <th>Source</th>
+                            <th>Destination</th>
+                            <th>Channel</th>
+                        </tr>
+                    </thead>
+                    <tbody id="traffic-body"></tbody>
+                </table>
+            </div>
         </section>
     </div>
+
     <script id="initial-payload" type="application/json">
         {{ payload | tojson | safe }}
     </script>
     <script>
-        const initialPayload = JSON.parse(document.getElementById('initial-payload').textContent);
+        const initialPayload = JSON.parse(document.getElementById("initial-payload").textContent);
         const dashboardFailureMessage = "Dashboard update failed";
 
         function escapeHtml(value) {
@@ -194,7 +286,20 @@
             }
         }
 
-        function renderTagList(id, entries, suffix = "") {
+        function renderSelectOptions(id, values, currentValue, includeAllLabel) {
+            const select = document.getElementById(id);
+            if (!select) {
+                return;
+            }
+
+            select.innerHTML = values.map((value) => {
+                const label = value || includeAllLabel;
+                const selected = value === currentValue ? " selected" : "";
+                return `<option value="${escapeHtml(value)}"${selected}>${escapeHtml(label)}</option>`;
+            }).join("");
+        }
+
+        function renderTagList(id, entries) {
             const list = document.getElementById(id);
             if (!list) {
                 return;
@@ -206,37 +311,102 @@
                 return;
             }
 
-            list.innerHTML = values
-                .map(([label, value]) => (
-                    `<li><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}${suffix}</strong></li>`
-                ))
-                .join("");
+            list.innerHTML = values.map(([label, value]) => `
+                <li>
+                    <span>${escapeHtml(label)}</span>
+                    <strong>${escapeHtml(value)}</strong>
+                </li>
+            `).join("");
         }
 
-        function renderDevices(devices) {
-            const body = document.getElementById("devices-body");
+        function renderHighAlerts(alerts) {
+            const container = document.getElementById("high-alerts");
+            if (!container) {
+                return;
+            }
+
+            if (!alerts.length) {
+                container.innerHTML = '<div class="empty-state">No HIGH or CRITICAL alerts for the active filter.</div>';
+                return;
+            }
+
+            container.innerHTML = alerts.map((alert) => `
+                <article class="stack-card">
+                    <div class="stack-head">
+                        <span class="mini-pill severity-${String(alert.severity || "low").toLowerCase()}">${escapeHtml(alert.severity || "LOW")}</span>
+                        <strong>${escapeHtml(alert.attack_type || "-")}</strong>
+                    </div>
+                    <p>${escapeHtml(alert.details || "-")}</p>
+                    <small>${escapeHtml(alert.timestamp || "-")} | ${escapeHtml(alert.bssid || alert.essid || "-")}</small>
+                </article>
+            `).join("");
+        }
+
+        function renderActivity(items) {
+            const container = document.getElementById("activity-list");
+            if (!container) {
+                return;
+            }
+
+            if (!items.length) {
+                container.innerHTML = '<div class="empty-state">No system events recorded.</div>';
+                return;
+            }
+
+            container.innerHTML = items.map((item) => `
+                <article class="stack-card">
+                    <div class="stack-head">
+                        <span class="mini-pill severity-${String(item.level || "info").toLowerCase()}">${escapeHtml(item.level || "INFO")}</span>
+                        <strong>${escapeHtml(item.timestamp || "-")}</strong>
+                    </div>
+                    <p>${escapeHtml(item.message || "-")}</p>
+                </article>
+            `).join("");
+        }
+
+        function renderAccessPoints(accessPoints) {
+            const body = document.getElementById("aps-body");
             if (!body) {
                 return;
             }
 
-            if (!devices.length) {
-                body.innerHTML = '<tr><td colspan="7" class="empty-state">No observed devices yet.</td></tr>';
+            if (!accessPoints.length) {
+                body.innerHTML = '<tr><td colspan="7" class="empty-state">No access points observed.</td></tr>';
                 return;
             }
 
-            body.innerHTML = devices.map((device) => `
+            body.innerHTML = accessPoints.map((record) => `
                 <tr>
-                    <td>${escapeHtml(device.device_name || "Unknown Device")}</td>
-                    <td>${escapeHtml(device.mac_address || "-")}</td>
-                    <td>${escapeHtml(device.ip_address || "-")}</td>
-                    <td>${escapeHtml(device.owner || "-")}</td>
-                    <td>
-                        <span class="mini-pill ${device.trusted ? "trusted" : "untrusted"}">
-                            ${device.trusted ? "Trusted" : "Unknown"}
-                        </span>
-                    </td>
-                    <td>${escapeHtml(device.packet_count || 0)}</td>
-                    <td>${escapeHtml(device.last_seen || "-")}</td>
+                    <td>${escapeHtml(record.bssid || "-")}</td>
+                    <td>${escapeHtml(record.essid || "<hidden>")}</td>
+                    <td>${escapeHtml(record.channel || "-")}</td>
+                    <td><span class="mini-pill ${record.security === "OPEN" ? "security-open" : "security-protected"}">${escapeHtml(record.security || "UNKNOWN")}</span></td>
+                    <td>${escapeHtml(record.beacon_count || 0)}</td>
+                    <td>${escapeHtml(record.client_count || 0)}</td>
+                    <td>${escapeHtml(record.last_seen || "-")}</td>
+                </tr>
+            `).join("");
+        }
+
+        function renderClients(clients) {
+            const body = document.getElementById("clients-body");
+            if (!body) {
+                return;
+            }
+
+            if (!clients.length) {
+                body.innerHTML = '<tr><td colspan="6" class="empty-state">No clients observed.</td></tr>';
+                return;
+            }
+
+            body.innerHTML = clients.map((record) => `
+                <tr>
+                    <td>${escapeHtml(record.client_mac || "-")}</td>
+                    <td>${escapeHtml(record.associated_bssid || "-")}</td>
+                    <td>${escapeHtml(record.associated_essid || "-")}</td>
+                    <td>${escapeHtml(record.frame_count || 0)}</td>
+                    <td>${escapeHtml((record.probe_essids || []).join(", ") || "-")}</td>
+                    <td>${escapeHtml(record.last_seen || "-")}</td>
                 </tr>
             `).join("");
         }
@@ -248,92 +418,82 @@
             }
 
             if (!alerts.length) {
-                body.innerHTML = '<tr><td colspan="6" class="empty-state">No alerts recorded.</td></tr>';
+                body.innerHTML = '<tr><td colspan="7" class="empty-state">No alerts match the current filter.</td></tr>';
                 return;
             }
 
             body.innerHTML = alerts.map((alert) => `
                 <tr>
                     <td>${escapeHtml(alert.timestamp || "-")}</td>
-                    <td><span class="mini-pill severity-${String(alert.severity || "info").toLowerCase()}">${escapeHtml(alert.severity || "INFO")}</span></td>
-                    <td>${escapeHtml(alert.alert_type || "-")}</td>
-                    <td>${escapeHtml(alert.source || "-")}</td>
-                    <td>${escapeHtml(alert.destination || "-")}</td>
+                    <td><span class="mini-pill severity-${String(alert.severity || "low").toLowerCase()}">${escapeHtml(alert.severity || "LOW")}</span></td>
+                    <td>${escapeHtml(alert.attack_type || "-")}</td>
+                    <td>${escapeHtml(alert.bssid || "-")}</td>
+                    <td>${escapeHtml(alert.essid || "-")}</td>
                     <td>${escapeHtml(alert.details || "-")}</td>
+                    <td>${escapeHtml(alert.mitre_technique || "N/A")}</td>
                 </tr>
             `).join("");
         }
 
-        function renderTraffic(traffic) {
+        function renderTraffic(trafficLogs) {
             const body = document.getElementById("traffic-body");
             if (!body) {
                 return;
             }
 
-            if (!traffic.length) {
-                body.innerHTML = '<tr><td colspan="6" class="empty-state">No traffic records recorded.</td></tr>';
+            if (!trafficLogs.length) {
+                body.innerHTML = '<tr><td colspan="7" class="empty-state">No traffic rows match the current filter.</td></tr>';
                 return;
             }
 
-            body.innerHTML = traffic.map((row) => `
+            body.innerHTML = trafficLogs.map((row) => `
                 <tr>
                     <td>${escapeHtml(row.timestamp || "-")}</td>
-                    <td>${escapeHtml(row.source || row.src_ip || row.src_mac || "-")}</td>
-                    <td>${escapeHtml(row.destination || row.dst_ip || row.dst_mac || "-")}</td>
-                    <td>${escapeHtml(row.protocol || "-")}</td>
-                    <td>${escapeHtml(row.length || "-")}</td>
-                    <td>${escapeHtml(row.capture_mode || "-")}</td>
+                    <td>${escapeHtml(row.frame_subtype || row.frame_type || "-")}</td>
+                    <td>${escapeHtml(row.bssid || "-")}</td>
+                    <td>${escapeHtml(row.essid || "-")}</td>
+                    <td>${escapeHtml(row.source || row.src_mac || "-")}</td>
+                    <td>${escapeHtml(row.destination || row.dst_mac || "-")}</td>
+                    <td>${escapeHtml(row.channel || "-")}</td>
                 </tr>
-            `).join("");
-        }
-
-        function renderActivity(activity) {
-            const container = document.getElementById("activity-list");
-            if (!container) {
-                return;
-            }
-
-            if (!activity.length) {
-                container.innerHTML = '<div class="empty-state">No activity logs recorded.</div>';
-                return;
-            }
-
-            container.innerHTML = activity.map((item) => `
-                <div class="activity-entry">
-                    <span class="mini-pill severity-${String(item.level || "info").toLowerCase()}">${escapeHtml(item.level || "INFO")}</span>
-                    <div>
-                        <strong>${escapeHtml(item.timestamp || "-")}</strong>
-                        <p>${escapeHtml(item.message || "-")}</p>
-                    </div>
-                </div>
             `).join("");
         }
 
         function updateDashboard(payload) {
             const status = payload.status || {};
             const stats = payload.stats || {};
-            const devices = payload.devices || [];
-            const alerts = payload.alerts || [];
-            const trafficLogs = payload.traffic_logs || [];
-            const activityLogs = payload.activity_logs || [];
+            const devices = payload.devices || {};
+            const accessPoints = devices.access_points || [];
+            const clients = devices.clients || [];
 
             const running = Boolean(status.running);
-            const pill = document.getElementById("status-pill");
-            if (pill) {
-                pill.textContent = running ? "Monitoring Active" : "Monitoring Idle";
-                pill.className = `pill ${running ? "pill-active" : "pill-idle"}`;
+            const statusPill = document.getElementById("status-pill");
+            if (statusPill) {
+                statusPill.textContent = running ? "Live Monitoring" : "Idle";
+                statusPill.className = `pill ${running ? "pill-active" : "pill-idle"}`;
             }
 
             setText("status-message", status.message || "No status message available.");
+            setText("hero-interface", status.interface || "-");
+            setText("hero-channel", status.current_channel || status.channel_lock || "-");
             setText("last-updated", payload.last_updated || "-");
-            setText("metric-mode", (status.mode || "unknown").toUpperCase());
-            setText("metric-packets", status.packet_count || stats.total_packets || 0);
-            setText("metric-alerts", status.alert_count || stats.total_alerts || 0);
-            setText("metric-devices", status.device_count || devices.length || 0);
+
+            setText("metric-packets", status.packet_count || 0);
+            setText("metric-alerts", status.alert_count || 0);
+            setText("metric-aps", status.ap_count || 0);
+            setText("metric-clients", status.client_count || 0);
+            setText("metric-high", stats.high_alert_count || 0);
+
+            setText("counter-deauth", (status.frame_counters || {}).deauth || 0);
+            setText("counter-disassoc", (status.frame_counters || {}).disassoc || 0);
+            setText("counter-beacon", (status.frame_counters || {}).beacon || 0);
+            setText("counter-probe", (status.frame_counters || {}).probe || 0);
+
             setText("engine-state", running ? "Running" : "Stopped");
-            setText("engine-interface", status.interface || "-");
-            setText("trusted-count", stats.trusted_devices || 0);
-            setText("unknown-count", stats.untrusted_devices || 0);
+            setText("engine-channel", status.current_channel || "-");
+            setText("engine-channel-lock", status.channel_lock || "None");
+            setText("engine-target-bssid", status.target_bssid || "Any");
+            setText("engine-target-essid", status.target_essid || "Any");
 
             const errorBox = document.getElementById("error-box");
             if (errorBox) {
@@ -342,13 +502,37 @@
                 errorBox.textContent = hasError ? status.error : "";
             }
 
-            renderTagList("protocol-list", stats.protocol_breakdown);
-            renderTagList("source-list", stats.top_sources);
-            renderTagList("alert-type-list", stats.alert_type_breakdown);
-            renderDevices(devices);
-            renderAlerts(alerts);
-            renderTraffic(trafficLogs);
-            renderActivity(activityLogs);
+            renderTagList("severity-list", stats.severity_breakdown);
+            renderTagList("attack-type-list", stats.attack_breakdown);
+            renderHighAlerts(payload.recent_high_alerts || []);
+            renderActivity(payload.activity_logs || []);
+            renderAccessPoints(accessPoints);
+            renderClients(clients);
+            renderAlerts(payload.alerts || []);
+            renderTraffic(payload.traffic_logs || []);
+            syncFilters(payload);
+        }
+
+        function syncFilters(payload) {
+            const filters = payload.filters || {};
+            const options = payload.filter_options || {};
+
+            renderSelectOptions("filter-severity", options.severity || [""], filters.severity || "", "All Severities");
+            renderSelectOptions(
+                "filter-attack-type",
+                ["", ...(options.attack_types || [])],
+                filters.attack_type || "",
+                "All Attack Types"
+            );
+
+            const bssidInput = document.getElementById("filter-bssid");
+            const essidInput = document.getElementById("filter-essid");
+            if (bssidInput && document.activeElement !== bssidInput) {
+                bssidInput.value = filters.bssid || "";
+            }
+            if (essidInput && document.activeElement !== essidInput) {
+                essidInput.value = filters.essid || "";
+            }
         }
 
         function showDashboardFailure(message = dashboardFailureMessage) {
@@ -356,14 +540,23 @@
             if (!errorBox) {
                 return;
             }
-
             errorBox.hidden = false;
             errorBox.textContent = message;
         }
 
+        function collectFilters() {
+            return {
+                severity: document.getElementById("filter-severity")?.value || "",
+                bssid: document.getElementById("filter-bssid")?.value.trim() || "",
+                essid: document.getElementById("filter-essid")?.value.trim() || "",
+                attack_type: document.getElementById("filter-attack-type")?.value || "",
+            };
+        }
+
         async function refreshDashboard() {
+            const query = new URLSearchParams(collectFilters());
             try {
-                const response = await fetch("/api/dashboard-data", { cache: "no-store" });
+                const response = await fetch(`/api/dashboard-data?${query.toString()}`, { cache: "no-store" });
                 if (!response.ok) {
                     showDashboardFailure();
                     return;
@@ -376,8 +569,21 @@
             }
         }
 
+        document.getElementById("filter-form")?.addEventListener("submit", (event) => {
+            event.preventDefault();
+            refreshDashboard();
+        });
+
+        document.getElementById("reset-filters")?.addEventListener("click", () => {
+            const form = document.getElementById("filter-form");
+            if (form) {
+                form.reset();
+            }
+            refreshDashboard();
+        });
+
         updateDashboard(initialPayload);
-        window.setInterval(refreshDashboard, 10000);
+        window.setInterval(refreshDashboard, 5000);
     </script>
 </body>
 </html>

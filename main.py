@@ -5,251 +5,186 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from src.attack_detector import AttackDetector
-from src.device_scanner import DeviceTracker, TrustedDeviceRegistry
+from src.attack_detector import AttackDetector, load_threshold_config
 from src.logger import MonitorLogger
 from src.packet_capture import (
     PacketCapture,
     PacketCaptureError,
     PacketCaptureInterfaceError,
+    PacketCaptureMonitorModeError,
     PacketCapturePermissionError,
 )
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Wireless Network Security Monitor",
-    )
-    parser.add_argument(
-        "--mode",
-        choices=("auto", "live", "pcap", "demo"),
-        default="auto",
-        help="Traffic source selection. 'auto' tries live capture first.",
+        description="Real-time wireless IDS monitor for authorized lab environments.",
     )
     parser.add_argument(
         "--interface",
+        required=True,
+        help="Monitor-mode wireless interface, for example wlan0mon.",
+    )
+    parser.add_argument(
+        "--channel",
+        type=int,
+        default=None,
+        help="Optional channel lock applied before live capture starts.",
+    )
+    parser.add_argument(
+        "--bssid",
         default="",
-        help="Interface for live capture, for example wlan0 or wlan0mon.",
+        help="Optional BSSID filter to scope capture and alerts to one AP.",
     )
     parser.add_argument(
-        "--pcap",
+        "--essid",
         default="",
-        help="Path to an offline PCAP file when using --mode pcap.",
+        help="Optional ESSID filter to scope capture and alerts to one SSID.",
     )
     parser.add_argument(
-        "--count",
-        type=int,
-        default=50,
-        help="Packets to capture per monitoring cycle.",
+        "--config",
+        default="config/thresholds.json",
+        help="Path to the shared detector threshold config file.",
     )
     parser.add_argument(
-        "--timeout",
+        "--status-interval",
         type=int,
-        default=10,
-        help="Capture timeout in seconds per monitoring cycle.",
-    )
-    parser.add_argument(
-        "--interval",
-        type=int,
-        default=5,
-        help="Delay between cycles when running multiple iterations.",
-    )
-    parser.add_argument(
-        "--iterations",
-        type=int,
-        default=1,
-        help="Number of monitoring cycles. Use 0 for continuous monitoring.",
-    )
-    parser.add_argument(
-        "--packet-rate-threshold",
-        type=int,
-        default=25,
-        help="Packets from one source inside 10 seconds before flood alerting.",
+        default=3,
+        help="Seconds between status and inventory flushes to data/status.json.",
     )
     parser.add_argument(
         "--reset-logs",
         action="store_true",
-        help="Clear alert, traffic, device, and activity outputs before running.",
+        help="Clear persisted alerts, traffic logs, inventory, and status before monitoring.",
     )
     return parser
 
 
-def resolve_mode(args: argparse.Namespace) -> str:
-    if args.mode == "pcap" or args.pcap:
-        return "pcap"
-    if args.mode == "demo":
-        return "demo"
-    return "live"
-
-
-def process_packets(
-    packets: list[dict[str, str]],
-    tracker: DeviceTracker,
-    detector: AttackDetector,
-    logger: MonitorLogger,
-) -> tuple[int, int]:
-    packet_total = 0
-    alert_total = 0
-
-    for packet in packets:
-        logger.append_traffic(packet)
-        tracker.observe(packet)
-        packet_total += 1
-
-        for alert in detector.analyze(packet):
-            logger.append_alert(alert)
-            logger.append_activity(
-                f"{alert['alert_type']}: {alert['details']}",
-                level=alert["severity"],
-            )
-            alert_total += 1
-
-    logger.save_devices(tracker.export_devices())
-    return packet_total, alert_total
+def resolve_path(base_dir: Path, candidate: str) -> Path:
+    path = Path(candidate)
+    if path.is_absolute():
+        return path
+    return base_dir / path
 
 
 def run_monitor(args: argparse.Namespace) -> int:
+    if args.channel is not None and args.channel <= 0:
+        raise ValueError("--channel must be a positive integer.")
+    if args.status_interval <= 0:
+        raise ValueError("--status-interval must be a positive integer.")
+
     base_dir = Path(__file__).resolve().parent
     data_dir = base_dir / "data"
+    config_path = resolve_path(base_dir, args.config)
 
     logger = MonitorLogger(data_dir)
     if args.reset_logs:
         logger.reset_runtime_outputs()
 
-    registry = TrustedDeviceRegistry(data_dir / "known_devices.csv")
-    tracker = DeviceTracker(registry)
-    detector = AttackDetector(
-        registry=registry,
-        packet_rate_threshold=args.packet_rate_threshold,
-    )
+    thresholds = load_threshold_config(config_path)
+    detector = AttackDetector(thresholds)
     capture = PacketCapture(
         interface=args.interface,
-        pcap_path=args.pcap,
-        timeout=args.timeout,
-        count=args.count,
+        channel=args.channel,
+        bssid=args.bssid,
+        essid=args.essid,
     )
 
-    requested_mode = resolve_mode(args)
-    interface_name = args.interface or "default"
+    current_message = "Validating monitor-mode interface."
+    current_error = ""
+    exit_code = 0
+    status_started = False
+    last_flush = 0.0
 
-    logger.append_activity(
-        f"Monitoring session started in {requested_mode} mode on interface '{interface_name}'."
-    )
-    logger.update_status(
-        running=True,
-        mode=requested_mode,
-        interface=interface_name,
-        last_update=datetime.now().astimezone().isoformat(timespec="seconds"),
-        packet_count=0,
-        alert_count=0,
-        device_count=0,
-        message="Monitor initialized.",
-        error="",
-    )
+    def flush_runtime_state(force: bool = False) -> None:
+        nonlocal last_flush
 
-    total_packets = 0
-    total_alerts = 0
-    cycle = 0
-    last_effective_mode = requested_mode
-    last_error = ""
+        now = time.monotonic()
+        if not force and now - last_flush < args.status_interval:
+            return
+
+        snapshot = detector.get_status_snapshot()
+        logger.save_devices(detector.export_devices())
+        logger.update_status(
+            running=status_started,
+            mode="live",
+            interface=args.interface,
+            channel_lock=str(args.channel or ""),
+            current_channel=capture.current_channel or snapshot["current_channel"],
+            target_bssid=args.bssid.strip().upper(),
+            target_essid=args.essid.strip(),
+            packet_count=snapshot["packet_count"],
+            alert_count=snapshot["alert_count"],
+            ap_count=snapshot["ap_count"],
+            client_count=snapshot["client_count"],
+            severity_counts=snapshot["severity_counts"],
+            attack_counts=snapshot["attack_counts"],
+            frame_counters=snapshot["frame_counters"],
+            last_update=datetime.now().astimezone().isoformat(timespec="seconds"),
+            message=current_message,
+            error=current_error,
+        )
+        last_flush = now
+
+    def handle_packet(packet: dict[str, object]) -> None:
+        nonlocal current_message
+
+        logger.append_traffic(packet)
+        alerts = detector.process_packet(packet)
+        if alerts:
+            latest_alert = alerts[-1]
+            current_message = (
+                f"{latest_alert['severity']} {latest_alert['attack_type']} detected on "
+                f"{latest_alert.get('essid') or latest_alert.get('bssid') or args.interface}."
+            )
+            for alert in alerts:
+                logger.append_alert(alert)
+                logger.append_activity(
+                    f"{alert['attack_type']}: {alert['details']}",
+                    level=str(alert["severity"]),
+                )
+
+        flush_runtime_state()
+
+    logger.append_activity(f"Loading thresholds from {config_path}.")
+    flush_runtime_state(force=True)
 
     try:
-        while args.iterations == 0 or cycle < args.iterations:
-            cycle += 1
-            active_mode = requested_mode
-            cycle_message = ""
-
-            try:
-                if requested_mode == "pcap":
-                    packets = capture.load_pcap()
-                elif requested_mode == "demo":
-                    packets = capture.load_demo_packets()
-                else:
-                    packets = capture.capture_live()
-            except (
-                PacketCapturePermissionError,
-                PacketCaptureInterfaceError,
-                PacketCaptureError,
-            ) as exc:
-                active_mode = "demo"
-                requested_mode = "demo"
-                cycle_message = f"{exc} Falling back to demo mode."
-                last_error = cycle_message
-                logger.append_activity(cycle_message, level="ERROR")
-                packets = capture.load_demo_packets()
-
-            if not packets:
-                logger.append_activity(
-                    "No packets were captured in the current monitoring cycle.",
-                    level="WARN",
-                )
-
-            packets_processed, alerts_raised = process_packets(
-                packets=packets,
-                tracker=tracker,
-                detector=detector,
-                logger=logger,
+        capture.validate_interface()
+        current_message = f"Live monitoring active on {args.interface}."
+        if args.channel:
+            current_message = (
+                f"Live monitoring active on {args.interface} with channel lock {args.channel}."
             )
-
-            total_packets += packets_processed
-            total_alerts += alerts_raised
-            devices = tracker.export_devices()
-            last_effective_mode = active_mode
-
-            if not cycle_message:
-                cycle_message = (
-                    f"Cycle {cycle} complete: processed {packets_processed} packets "
-                    f"and raised {alerts_raised} alerts in {active_mode} mode."
-                )
-            logger.append_activity(cycle_message)
-            logger.update_status(
-                running=True,
-                mode=active_mode,
-                interface=interface_name,
-                last_update=datetime.now().astimezone().isoformat(timespec="seconds"),
-                packet_count=total_packets,
-                alert_count=total_alerts,
-                device_count=len(devices),
-                message=cycle_message,
-                error=last_error,
-            )
-
-            if requested_mode == "pcap":
-                break
-
-            if args.iterations == 0 or cycle < args.iterations:
-                time.sleep(args.interval)
-
+        status_started = True
+        logger.append_activity(current_message)
+        flush_runtime_state(force=True)
+        capture.sniff_live(handle_packet)
     except KeyboardInterrupt:
-        logger.append_activity("Monitoring interrupted by the operator.", level="WARN")
+        current_message = "Monitoring stopped by the operator."
+        logger.append_activity(current_message, level="WARN")
+    except (
+        PacketCapturePermissionError,
+        PacketCaptureInterfaceError,
+        PacketCaptureMonitorModeError,
+        PacketCaptureError,
+        FileNotFoundError,
+        ValueError,
+    ) as exc:
+        current_error = str(exc)
+        current_message = "Monitoring stopped due to a capture or configuration error."
+        exit_code = 1
+        logger.append_activity(current_error, level="ERROR")
     finally:
-        completion_message = "Monitoring session completed."
-        if args.iterations == 0:
-            completion_message = "Monitoring session stopped by the operator."
+        status_started = False
+        flush_runtime_state(force=True)
 
-        logger.update_status(
-            running=False,
-            mode=last_effective_mode,
-            interface=interface_name,
-            last_update=datetime.now().astimezone().isoformat(timespec="seconds"),
-            packet_count=total_packets,
-            alert_count=total_alerts,
-            device_count=len(tracker.export_devices()),
-            message=completion_message,
-            error=last_error,
-        )
-        logger.append_activity(completion_message)
-
-    return 0
+    return exit_code
 
 
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-
-    if resolve_mode(args) == "pcap" and not args.pcap:
-        parser.error("--mode pcap requires --pcap /path/to/file.pcap")
-
     return run_monitor(args)
 
 

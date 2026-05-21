@@ -1,0 +1,39 @@
+{
+  "deauth_flood": {
+    "count": 15,
+    "window_seconds": 10,
+    "cooldown_seconds": 30,
+    "severity": "CRITICAL"
+  },
+  "disassociation_flood": {
+    "count": 15,
+    "window_seconds": 10,
+    "cooldown_seconds": 30,
+    "severity": "HIGH"
+  },
+  "beacon_flood": {
+    "count": 80,
+    "unique_ssids": 12,
+    "window_seconds": 10,
+    "cooldown_seconds": 45,
+    "severity": "HIGH"
+  },
+  "probe_request_flood": {
+    "count": 40,
+    "window_seconds": 10,
+    "cooldown_seconds": 45,
+    "severity": "MEDIUM"
+  },
+  "evil_twin": {
+    "cooldown_seconds": 60,
+    "severity": "HIGH"
+  },
+  "open_network": {
+    "cooldown_seconds": 300,
+    "severity": "LOW"
+  },
+  "arp_spoofing": {
+    "cooldown_seconds": 60,
+    "severity": "HIGH"
+  }
+}
