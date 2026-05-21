@@ -1,18 +1,36 @@
 venv/
+.venv/
+env/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
 .env
+.python-version
+
+# Runtime captures and logs
 *.pcap
 *.cap
 *.log
-.DS_Store
-.CBS 2343 WIRELESS NETWORK & SECURITY MINI PROJECT 30_.docxCBS 2343 WIRELESS NETWORK & SECURITY MINI PROJECT 30_.docx
-/CBS 2343 WIRELESS NETWORK & SECURITY MINI PROJECT 30_.docx
-*.docx
-
-# Runtime data/logs
+archive/
 data/*.json
 data/*.csv
 
-# VS Code local settings
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+
+# IDE and editor settings
 .vscode/settings.json
+.idea/
+*.swp
+.DS_Store
+
+# Office documents
+*.docx
+*.xlsx

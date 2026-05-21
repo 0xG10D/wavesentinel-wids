@@ -54,6 +54,9 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+For contributor setup, editable installs, and local validation commands, see
+`DEVELOPMENT.md`.
+
 ## Usage
 
 Start monitor mode on the USB adapter:

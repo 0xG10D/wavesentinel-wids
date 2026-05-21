@@ -1,1 +1,1 @@
-"""Core modules for the Wireless Network Security Monitor."""
+"""Core modules for the WaveSentinel WIDS engine."""
