@@ -9,7 +9,6 @@ from typing import Any
 
 from flask import Flask, abort, jsonify, render_template, request, send_from_directory
 
-
 BASE_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = BASE_DIR / "data"
 WEB_DIR = Path(__file__).resolve().parent
@@ -360,16 +359,25 @@ def normalize_alert_rows(payload: Any) -> list[dict[str, Any]]:
 
 def normalize_traffic_record(payload: Any) -> dict[str, Any]:
     source = sanitize_mapping(payload)
-    frame_type = normalize_text(source.get("frame_type") or source.get("frame_class")) or "Unknown"
-    frame_subtype = normalize_text(source.get("frame_subtype") or source.get("wireless_subtype")) or frame_type
+    frame_type = (
+        normalize_text(source.get("frame_type") or source.get("frame_class")) or "Unknown"
+    )
+    frame_subtype = (
+        normalize_text(source.get("frame_subtype") or source.get("wireless_subtype"))
+        or frame_type
+    )
     return {
         "timestamp": normalize_text(source.get("timestamp")),
         "frame_type": frame_type,
         "frame_subtype": frame_subtype,
         "bssid": normalize_mac(source.get("bssid")),
         "essid": normalize_text(source.get("essid")),
-        "source": normalize_text(source.get("source") or source.get("src_ip") or source.get("src_mac")),
-        "destination": normalize_text(source.get("destination") or source.get("dst_ip") or source.get("dst_mac")),
+        "source": normalize_text(
+            source.get("source") or source.get("src_ip") or source.get("src_mac")
+        ),
+        "destination": normalize_text(
+            source.get("destination") or source.get("dst_ip") or source.get("dst_mac")
+        ),
         "channel": normalize_channel(source.get("channel")),
         "rssi": normalize_text(source.get("rssi") or source.get("signal_dbm")),
     }
@@ -560,7 +568,9 @@ def build_summary_view(
         overall_message = "The monitor needs review or there are lower-risk issues nearby."
     else:
         overall_level = "SAFE"
-        overall_message = "Your Wi-Fi monitor is running and no high-risk attack is currently flagged."
+        overall_message = (
+            "Your Wi-Fi monitor is running and no high-risk attack is currently flagged."
+        )
 
     attack_types = {alert["attack_type"] for alert in alerts}
     advisories = [item["message"] for item in status.get("advisories", [])]
@@ -590,20 +600,36 @@ def build_summary_view(
     if not status["running"]:
         recommendations.append("Start the WIDS engine before relying on the dashboard state.")
     if status["troubleshooting"]:
-        recommendations.append("Check monitor mode, channel lock, and the USB adapter driver first.")
+        recommendations.append(
+            "Check monitor mode, channel lock, and the USB adapter driver first."
+        )
     if critical_count:
-        recommendations.append("Review the technical alert feed and validate the suspicious BSSID and channel immediately.")
+        recommendations.append(
+            "Review the technical alert feed and validate the suspicious BSSID "
+            "and channel immediately."
+        )
     if "Open Network Detected" in attack_types:
-        recommendations.append("Treat the open SSID as untrusted until you verify it is expected in the lab.")
+        recommendations.append(
+            "Treat the open SSID as untrusted until you verify it is expected "
+            "in the lab."
+        )
     if not recommendations:
-        recommendations.append("Keep the monitor on the expected lab channel and review alerts periodically.")
+        recommendations.append(
+            "Keep the monitor on the expected lab channel and review alerts periodically."
+        )
 
     glossary = [
         {"term": "AP", "meaning": "A Wi-Fi access point such as your lab router."},
         {"term": "Client", "meaning": "A phone, laptop, or device talking to an access point."},
         {"term": "Packet", "meaning": "One wireless frame captured from the air."},
         {"term": "Beacon", "meaning": "A broadcast frame that announces a Wi-Fi network."},
-        {"term": "Deauth", "meaning": "A frame that disconnects a client from Wi-Fi and can be abused in attacks."},
+        {
+            "term": "Deauth",
+            "meaning": (
+                "A frame that disconnects a client from Wi-Fi and can be abused "
+                "in attacks."
+            ),
+        },
     ]
 
     return {

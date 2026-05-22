@@ -17,7 +17,6 @@ from src.packet_capture import (
 )
 from src.session_manager import SessionLockError, SessionManager
 
-
 NO_PACKET_WARNING_SECONDS = 15
 NO_PACKET_WARNING_MESSAGE = (
     "No packets captured. Check monitor mode, channel, adapter driver, or interface name."
@@ -172,7 +171,10 @@ def run_monitor(args: argparse.Namespace) -> int:
                 warning = NO_PACKET_WARNING_MESSAGE
                 troubleshooting = [
                     warning,
-                    f"WaveSentinel requested '{args.interface}' and is currently using '{capture.interface}'.",
+                    (
+                        f"WaveSentinel requested '{args.interface}' and is currently "
+                        f"using '{capture.interface}'."
+                    ),
                     "Verify the adapter is in monitor mode and locked to the expected channel.",
                     "airmon-ng may rename long adapter names to wlan0mon.",
                 ]

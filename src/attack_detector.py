@@ -9,7 +9,6 @@ from typing import Any
 
 from src.packet_capture import normalize_mac
 
-
 SEVERITY_LEVELS = ("LOW", "MEDIUM", "HIGH", "CRITICAL")
 BROADCAST_MAC = "FF:FF:FF:FF:FF:FF"
 
@@ -302,9 +301,16 @@ class AttackDetector:
         if source_client and source_client != bssid and source_client != BROADCAST_MAC:
             self._observe_client(source_client, packet, bssid)
 
-        if frame_class in {"Management", "Data"} and frame_subtype not in {"Beacon", "Probe Response"}:
+        if (
+            frame_class in {"Management", "Data"}
+            and frame_subtype not in {"Beacon", "Probe Response"}
+        ):
             destination_client = normalize_mac(str(packet.get("dst_mac", "")))
-            if destination_client and destination_client != bssid and destination_client != BROADCAST_MAC:
+            if (
+                destination_client
+                and destination_client != bssid
+                and destination_client != BROADCAST_MAC
+            ):
                 self._observe_client(destination_client, packet, bssid)
 
     def _observe_client(self, client_mac: str, packet: dict[str, Any], bssid: str) -> None:
@@ -365,7 +371,9 @@ class AttackDetector:
             return None
 
         config = self.thresholds["deauth_flood"]
-        source = normalize_mac(str(packet.get("src_mac", ""))) or normalize_mac(str(packet.get("bssid", "")))
+        source = normalize_mac(str(packet.get("src_mac", ""))) or normalize_mac(
+            str(packet.get("bssid", ""))
+        )
         if not source:
             source = "unknown-source"
 
@@ -397,7 +405,9 @@ class AttackDetector:
             return None
 
         config = self.thresholds["disassociation_flood"]
-        source = normalize_mac(str(packet.get("src_mac", ""))) or normalize_mac(str(packet.get("bssid", "")))
+        source = normalize_mac(str(packet.get("src_mac", ""))) or normalize_mac(
+            str(packet.get("bssid", ""))
+        )
         if not source:
             source = "unknown-source"
 
@@ -429,7 +439,9 @@ class AttackDetector:
             return None
 
         config = self.thresholds["beacon_flood"]
-        source = normalize_mac(str(packet.get("src_mac", ""))) or normalize_mac(str(packet.get("bssid", "")))
+        source = normalize_mac(str(packet.get("src_mac", ""))) or normalize_mac(
+            str(packet.get("bssid", ""))
+        )
         if not source:
             source = "unknown-source"
 
@@ -573,7 +585,8 @@ class AttackDetector:
             severity=str(config["severity"]),
             attack_type="Open Network Detected",
             details=(
-                f"Access point {bssid} is advertising ESSID '{essid}' without link-layer protection."
+                f"Access point {bssid} is advertising ESSID '{essid}' "
+                "without link-layer protection."
             ),
             mapping_key="open_network",
             packet_count=1,

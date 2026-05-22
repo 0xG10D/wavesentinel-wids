@@ -9,11 +9,11 @@ from typing import Any, Callable
 try:
     from scapy.all import (
         ARP,
+        IP,
         Dot11,
         Dot11Beacon,
         Dot11Elt,
         Dot11ProbeResp,
-        IP,
         RadioTap,
         sniff,
     )
@@ -84,7 +84,8 @@ class PacketCapture:
     def validate_interface(self) -> None:
         if not SCAPY_AVAILABLE:
             raise PacketCaptureError(
-                "Scapy is not installed or importable. Install requirements before starting the WIDS engine."
+                "Scapy is not installed or importable. "
+                "Install requirements before starting the WIDS engine."
             )
         if not self.requested_interface:
             raise PacketCaptureInterfaceError("A monitor-mode interface is required.")
@@ -196,11 +197,14 @@ class PacketCapture:
             if available_monitor_names:
                 hint = (
                     f" Active monitor interface(s): {available_monitor_names}. "
-                    f"If airmon-ng renamed '{self.requested_interface}', use that monitor interface instead. "
+                    f"If airmon-ng renamed '{self.requested_interface}', "
+                    "use that monitor interface instead. "
                     "Long adapter names are often renamed to wlan0mon."
                 )
             raise PacketCaptureMonitorModeError(
-                f"Interface '{self.requested_interface}' is in {requested.mode or 'unknown'} mode, not monitor mode.{hint}"
+                "Interface "
+                f"'{self.requested_interface}' is in {requested.mode or 'unknown'} "
+                f"mode, not monitor mode.{hint}"
             )
 
         if len(monitor_interfaces) == 1:
@@ -215,7 +219,8 @@ class PacketCapture:
         if len(monitor_interfaces) > 1:
             monitor_names = ", ".join(item.name for item in monitor_interfaces)
             raise PacketCaptureInterfaceError(
-                f"Interface '{self.requested_interface}' was not found. Multiple monitor interfaces are active: "
+                f"Interface '{self.requested_interface}' was not found. "
+                "Multiple monitor interfaces are active: "
                 f"{monitor_names}. Re-run with the exact capture interface."
             )
 
@@ -224,12 +229,14 @@ class PacketCapture:
                 f"{item.name} ({item.mode or 'unknown'})" for item in interfaces
             )
             raise PacketCaptureInterfaceError(
-                f"Interface '{self.requested_interface}' was not found. Available interfaces: {available}. "
+                f"Interface '{self.requested_interface}' was not found. "
+                f"Available interfaces: {available}. "
                 "airmon-ng may rename long adapter names to wlan0mon."
             )
 
         raise PacketCaptureInterfaceError(
-            f"Interface '{self.requested_interface}' was not found and no wireless interfaces were reported by iw. "
+            f"Interface '{self.requested_interface}' was not found and no "
+            "wireless interfaces were reported by iw. "
             "Check the adapter, driver, and monitor-mode setup."
         )
 
@@ -303,13 +310,17 @@ class PacketCapture:
         if iwconfig_result is not None and iwconfig_result.returncode == 0:
             self.current_channel = str(channel)
             return
-        if iwconfig_result is not None and self._looks_like_permission_error(iwconfig_result.stderr):
+        if (
+            iwconfig_result is not None
+            and self._looks_like_permission_error(iwconfig_result.stderr)
+        ):
             raise PacketCapturePermissionError(
                 f"Channel lock on {self.interface} requires elevated privileges."
             )
 
         raise PacketCaptureError(
-            f"Failed to lock {self.interface} to channel {channel}. Check that the interface is monitor-mode capable."
+            f"Failed to lock {self.interface} to channel {channel}. "
+            "Check that the interface is monitor-mode capable."
         )
 
     def _verify_channel_lock(self, channel: int) -> None:
@@ -326,7 +337,8 @@ class PacketCapture:
 
         if refreshed.channel and refreshed.channel != str(channel):
             raise PacketCaptureError(
-                f"Interface '{self.interface}' is on channel {refreshed.channel} after requesting channel {channel}. "
+                f"Interface '{self.interface}' is on channel {refreshed.channel} "
+                f"after requesting channel {channel}. "
                 "Re-check monitor mode and channel lock."
             )
 
@@ -525,4 +537,7 @@ class PacketCapture:
             return "Data"
         if frame_type == 1:
             return "Control"
-        return subtype_map.get((frame_type, frame_subtype), PacketCapture._frame_class_name(frame_type))
+        return subtype_map.get(
+            (frame_type, frame_subtype),
+            PacketCapture._frame_class_name(frame_type),
+        )
